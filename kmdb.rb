@@ -78,6 +78,12 @@
 # Delete existing data, so you'll start fresh each time this script is run.
 # Use `Model.destroy_all` code.
 # TODO!
+Role.destroy_all
+Movie.destroy_all
+Actor.destroy_all
+Studio.destroy_all
+Agent.destroy_all
+
 
 # Generate models and tables, according to the domain model.
 # TODO!
@@ -85,14 +91,102 @@
 # Insert data into the database that reflects the sample data shown above.
 # Do not use hard-coded foreign key IDs.
 # TODO!
+# Studio
+warner = Studio.new
+warner["name"] = "Warner Bros."
+warner.save
 
-# Prints a header for the movies output
-puts "Movies"
-puts "======"
-puts ""
+# Movies
+bb = Movie.new
+bb["title"] = "Batman Begins"
+bb["year_released"] = 2005
+bb["mpaa_rating"] = "PG-13"
+bb["studio_id"] = warner["id"]
+bb.save
+
+tdk = Movie.new
+tdk["title"] = "The Dark Knight"
+tdk["year_released"] = 2008
+tdk["mpaa_rating"] = "PG-13"
+tdk["studio_id"] = warner["id"]
+tdk.save
+
+tdkr = Movie.new
+tdkr["title"] = "The Dark Knight Rises"
+tdkr["year_released"] = 2012
+tdkr["mpaa_rating"] = "PG-13"
+tdkr["studio_id"] = warner["id"]
+tdkr.save
+
+# Actors
+actors = {}
+
+[
+  "Christian Bale",
+  "Michael Caine",
+  "Liam Neeson",
+  "Katie Holmes",
+  "Gary Oldman",
+  "Heath Ledger",
+  "Aaron Eckhart",
+  "Maggie Gyllenhaal",
+  "Tom Hardy",
+  "Joseph Gordon-Levitt",
+  "Anne Hathaway"
+].each do |actor_name|
+  a = Actor.new
+  a["name"] = actor_name
+  a.save
+  actors[actor_name] = a
+end
+
+# Roles (top cast)
+roles_data = [
+  [bb,   "Christian Bale",       "Bruce Wayne"],
+  [bb,   "Michael Caine",        "Alfred"],
+  [bb,   "Liam Neeson",          "Ra's Al Ghul"],
+  [bb,   "Katie Holmes",         "Rachel Dawes"],
+  [bb,   "Gary Oldman",          "Commissioner Gordon"],
+
+  [tdk,  "Christian Bale",       "Bruce Wayne"],
+  [tdk,  "Heath Ledger",         "Joker"],
+  [tdk,  "Aaron Eckhart",        "Harvey Dent"],
+  [tdk,  "Michael Caine",        "Alfred"],
+  [tdk,  "Maggie Gyllenhaal",    "Rachel Dawes"],
+
+  [tdkr, "Christian Bale",       "Bruce Wayne"],
+  [tdkr, "Gary Oldman",          "Commissioner Gordon"],
+  [tdkr, "Tom Hardy",            "Bane"],
+  [tdkr, "Joseph Gordon-Levitt", "John Blake"],
+  [tdkr, "Anne Hathaway",        "Selina Kyle"]
+]
+
+roles_data.each do |movie, actor_name, character_name|
+  r = Role.new
+  r["movie_id"] = movie["id"]
+  r["actor_id"] = actors[actor_name]["id"]
+  r["character_name"] = character_name
+  r.save
+end
+
+# Agent + UPDATE (so "Represented by agent" prints something)
+agent = Agent.new
+agent["name"] = "Gotham Talent Agency"
+agent.save
+
+bale = Actor.find_by({ "name" => "Christian Bale" })
+bale["agent_id"] = agent["id"]
+bale.save
+puts bale["agent_id"]
 
 # Query the movies data and loop through the results to display the movies output.
 # TODO!
+movies = Movie.all
+
+movies.each do |movie|
+  studio = Studio.find_by({ "id" => movie["studio_id"] })
+  puts "#{movie["title"]}\t#{movie["year_released"]}\t#{movie["mpaa_rating"]}\t#{studio["name"]}"
+end
 
 # Prints a header for the cast output
 puts ""
@@ -102,6 +196,14 @@ puts ""
 
 # Query the cast data and loop through the results to display the cast output for each movie.
 # TODO!
+roles = Role.all
+
+roles.each do |role|
+  movie = Movie.find_by({ "id" => role["movie_id"] })
+  actor = Actor.find_by({ "id" => role["actor_id"] })
+  puts "#{movie["title"]}\t#{actor["name"]}\t#{role["character_name"]}"
+end
+
 
 # Prints a header for the agent's list of represented actors output
 puts ""
@@ -111,3 +213,9 @@ puts ""
 
 # Query the actor data and loop through the results to display the agent's list of represented actors output.
 # TODO!
+Actor.all.each do |actor|
+  if actor["agent_id"] != nil
+    puts actor["name"]
+  end
+end
+
